@@ -30,12 +30,9 @@ SOFTWARE.
 #include "ex_worker.h"
 
 int worker_start(executor_ *executor, struct worker **worker, int id) {
-
     *worker = Malloc(sizeof(struct worker));
-
     (*worker)->executor = executor;
     (*worker)->id = id;
-
     pthread_create(&(*worker)->pthread, NULL, (void *) worker_loop, (*worker));
     pthread_detach((*worker)->pthread);
     return 0;
@@ -61,17 +58,7 @@ void *worker_loop(struct worker *worker) {
         executor->workers_running++;
         pthread_mutex_unlock(&executor->lock);
 
-        worker_proc function;
-        void *arg;
-        ex_task_ *task = queue_dequeue(executor->executor_queue);
-
-
-        if (task != NULL) {
-            function = task->function;
-            arg = task->arg;
-            function(arg, &executor->global_lock, worker->id);
-            free(task);
-        }
+        execute_task_if_exists(worker);
 
         pthread_mutex_lock(&executor->lock);
         executor->workers_running--;
@@ -86,6 +73,22 @@ void *worker_loop(struct worker *worker) {
     executor->workers_started--;
     pthread_mutex_unlock(&executor->lock);
 
-
     return NULL;
+}
+
+void *execute_task_if_exists(struct worker *worker) {
+
+    executor_ *executor = worker->executor;
+
+    worker_proc function;
+    void *arg;
+    ex_task_ *task = queue_dequeue(executor->executor_queue);
+
+    if (task != NULL) {
+        function = task->function;
+        arg = task->arg;
+        function(arg, &executor->global_lock, worker->id);
+        free(task);
+    }
+
 }
