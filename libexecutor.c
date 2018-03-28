@@ -68,7 +68,7 @@ executor executor_create(int workers) {
     pthread_mutex_init(&(executor->global_lock), NULL);
     pthread_cond_init(&executor->executor_is_idle, NULL);
 
-    sleep(1); // wait 1 sec until all threads have started
+    usleep(200000); // wait 200ms until all threads have started
 
     return executor;
 }
