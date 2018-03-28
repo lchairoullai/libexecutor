@@ -31,9 +31,9 @@ void executor_sem_wait(executor_semaphore_ *p) {
      * the condition that caused the wait must be retested before the mutex lock is acquired.
     **/
 
-    while (p->v != 'G')
+    while (p->v != 'G') // Wait until green light
         pthread_cond_wait(&p->cvar, &p->mutex);
-    p->v = 0;
+    p->v = 'R'; // Turn to red light
 
     pthread_mutex_unlock(&p->mutex);
 }
